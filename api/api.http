@@ -1,0 +1,9 @@
+@api_HostAddress = http://localhost:5249
+
+GET {{api_HostAddress}}/api/stock
+Accept: application/json
+
+###
+
+GET {{api_HostAddress}}/api/stock/23
+Accept: applicaton/json
