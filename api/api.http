@@ -1,4 +1,8 @@
-@api_HostAddress = http://localhost:5249
+@api_HostAddress = http://localhost:7401
+
+GET {{api_HostAddress}}/api/hello
+Accept: application/json
+###
 
 GET {{api_HostAddress}}/api/stock
 Accept: application/json
@@ -7,3 +11,18 @@ Accept: application/json
 
 GET {{api_HostAddress}}/api/stock/23
 Accept: applicaton/json
+
+###
+
+POST {{api_HostAddress}}/api/stock}
+Content-Type: application/json
+{
+  "id": 23,
+  "symbol": "TST",
+  "companyName": "Test Stock",
+
+  "price": 100.0,
+  "lastDiv": 0,
+  "industry": "Test Industry",
+  "marketCap": 1000001,
+}

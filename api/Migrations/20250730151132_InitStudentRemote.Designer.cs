@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using api.Data;
 
@@ -11,9 +12,11 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250730151132_InitStudentRemote")]
+    partial class InitStudentRemote
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -83,38 +86,6 @@ namespace api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Stocks");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CompanyName = "Apple Inc.",
-                            Industry = "Technology",
-                            LastDiv = 0.24m,
-                            MarketCap = 3000000000000L,
-                            Price = 195.34m,
-                            Symbol = "AAPL"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CompanyName = "Microsoft Corporation",
-                            Industry = "Technology",
-                            LastDiv = 0.68m,
-                            MarketCap = 2800000000000L,
-                            Price = 410.22m,
-                            Symbol = "MSFT"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CompanyName = "Tesla, Inc.",
-                            Industry = "Automotive",
-                            LastDiv = 0.00m,
-                            MarketCap = 800000000000L,
-                            Price = 250.12m,
-                            Symbol = "TSLA"
-                        });
                 });
 
             modelBuilder.Entity("api.Models.Comment", b =>
