@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 ###
 
-Update {{api_HostAddress}}/api/stock/5
+PUT {{api_HostAddress}}/api/stock/5
 Content-Type: application/json
 {
   "id": 23,
