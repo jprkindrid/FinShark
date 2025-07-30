@@ -13,6 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();
 
 builder.Services.AddScoped<IStockRepository, StockRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 
 // TODO: CHANGE THIS CONNECTION STRING BACK ON HOME PC
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

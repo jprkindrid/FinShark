@@ -20,10 +20,6 @@
     <PackageReference Include="Scalar.AspNetCore" Version="2.6.5" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DTOs\Comment\" />
-  </ItemGroup>
-
   <ProjectExtensions><VisualStudio><UserProperties properties_4launchsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>

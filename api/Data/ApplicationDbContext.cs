@@ -18,6 +18,7 @@ namespace api.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Seed Stocks
             modelBuilder.Entity<Stock>().HasData(
                 new Stock
                 {
@@ -48,6 +49,34 @@ namespace api.Data
                     LastDiv = 0.00m,
                     Industry = "Automotive",
                     MarketCap = 800000000000
+                }
+            );
+
+            // Seed Comments
+            modelBuilder.Entity<Comment>().HasData(
+                new Comment
+                {
+                    Id = 1,
+                    Title = "Great stock!",
+                    Content = "Apple has been performing really well this quarter.",
+                    CreatedOn = new DateTime(2024, 7, 1),
+                    StockId = 1
+                },
+                new Comment
+                {
+                    Id = 2,
+                    Title = "Solid dividends",
+                    Content = "Microsoft's dividend is very attractive for long-term investors.",
+                    CreatedOn = new DateTime(2024, 7, 2),
+                    StockId = 2
+                },
+                new Comment
+                {
+                    Id = 3,
+                    Title = "Volatile",
+                    Content = "Tesla's price swings a lot, but the growth is impressive.",
+                    CreatedOn = new DateTime(2024, 7, 3),
+                    StockId = 3
                 }
             );
         }
