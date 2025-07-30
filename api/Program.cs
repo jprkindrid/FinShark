@@ -1,4 +1,6 @@
 using api.Data;
+using api.Interfaces;
+using api.Repository;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -8,14 +10,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddControllers(); 
+builder.Services.AddControllers();
 
+builder.Services.AddScoped<IStockRepository, StockRepository>();
 
 // TODO: CHANGE THIS CONNECTION STRING BACK ON HOME PC
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("Student01Workaround"));
 });
+
+
 
 var app = builder.Build();
 
