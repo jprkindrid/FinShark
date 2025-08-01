@@ -20,15 +20,15 @@ builder.Services.AddControllers()
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 
-// TODO: CHANGE THIS CONNECTION STRING BACK ON HOME PC
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Student01Workaround"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 
 
 var app = builder.Build();
+//Console.WriteLine("Temporary write");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

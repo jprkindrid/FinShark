@@ -28,11 +28,11 @@ namespace api.Controllers
             var commentDto = comments.Select(s => s.ToCommentDto());
 
             return Ok(commentDto);
-            
+
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetByID([FromRoute]int id)
+        public async Task<IActionResult> GetByID([FromRoute] int id)
         {
             var comment = await commentRepo.GetByIdAsync(id);
 
@@ -43,9 +43,9 @@ namespace api.Controllers
         }
         // FIXME: Big long error idk why this broke
         [HttpPost("{stockId}")]
-        public async Task<IActionResult> Create([FromRoute]int stockId, CreateCommentDTO commentDto, IStockRepository stockRepo)
+        public async Task<IActionResult> Create([FromRoute] int stockId, CreateCommentDTO commentDto, IStockRepository stockRepo)
         {
-            if(!await stockRepo.StockExists(stockId))
+            if (!await stockRepo.StockExists(stockId))
             {
                 return BadRequest("Stock does not exist");
             }
@@ -54,6 +54,20 @@ namespace api.Controllers
             await commentRepo.CreateAsync(commentModel);
 
             return CreatedAtAction(nameof(GetByID), new { id = commentModel.Id }, commentModel.ToCommentDto());
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCommentRequestDTO updateDTO)
+        {
+            var comment = await commentRepo.UpdateAsync(id, updateDTO.ToCommentFromUpdate());
+
+            if (comment == null)
+            {
+                return NotFound("Comment not found");
+            }
+
+            return Ok(comment.ToCommentDto());  
         }
 
     }

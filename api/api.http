@@ -1,20 +1,20 @@
-@api_HostAddress = http://localhost:7401
+@api_HostAddress = https://localhost:7041
 
-GET {{api_HostAddress}}/api/hello
+GET {{api_HostAddress}}/
 Accept: application/json
 ###
 
-GET {{api_HostAddress}}/api/stock
+GET {{api_HostAddress}}/api/stocks
 Accept: application/json
 
 ###
 
-GET {{api_HostAddress}}/api/stock/23
+GET {{api_HostAddress}}/api/stocks/2
 Accept: applicaton/json
 
 ###
 
-POST {{api_HostAddress}}/api/stock
+POST {{api_HostAddress}}/api/stocks
 Content-Type: application/json
 {
   "id": 23,
@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 ###
 
-PUT {{api_HostAddress}}/api/stock/5
+PUT {{api_HostAddress}}/api/stocks/5
 Content-Type: application/json
 {
   "id": 23,
