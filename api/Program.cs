@@ -1,7 +1,9 @@
 using api.Data;
+using api.Helpers;
 using api.Interfaces;
 using api.Models;
 using api.Repository;
+using api.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -23,10 +25,7 @@ builder.Services.AddControllers()
         });
 
 //Auth variable check
-static string GetRequiredConfig(IConfiguration config, string key)
-{
-    return config[key] ?? throw new InvalidOperationException($"{key} is not configured");
-}
+
 
 
 //Auth
@@ -53,19 +52,20 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidIssuer = GetRequiredConfig(builder.Configuration, "JWT:Issuer"),
+        ValidIssuer = RequiredConfig.Get(builder.Configuration, "JWT:Issuer"),
         ValidateAudience = true,
-        ValidAudience = GetRequiredConfig(builder.Configuration, "JWT:Audience"),
+        ValidAudience = RequiredConfig.Get(builder.Configuration, "JWT:Audience"),
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(
-            System.Text.Encoding.UTF8.GetBytes(GetRequiredConfig(builder.Configuration, "JWT:SigningKey"))),
+            System.Text.Encoding.UTF8.GetBytes(RequiredConfig.Get(builder.Configuration, "JWT:SigningKey"))),
         ClockSkew = TimeSpan.FromSeconds(30)
     };
 });
 
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
