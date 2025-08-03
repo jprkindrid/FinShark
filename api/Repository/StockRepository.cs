@@ -10,10 +10,12 @@ namespace api.Repository
     public class StockRepository : IStockRepository
     {
         private readonly ApplicationDbContext context;
+        private readonly ILogger<StockRepository> logger;
 
-        public StockRepository(ApplicationDbContext context)
+        public StockRepository(ApplicationDbContext context, ILogger<StockRepository> logger)
         {
             this.context = context;
+            this.logger = logger;
         }
 
         public async Task<Stock> CreateAsync(Stock stock)

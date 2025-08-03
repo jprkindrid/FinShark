@@ -15,11 +15,13 @@ namespace api.Controllers
     {
         private readonly ApplicationDbContext context;
         private readonly IStockRepository stockRepo;
+        private readonly ILogger<StockController> logger;
 
-        public StockController(ApplicationDbContext context, IStockRepository stockRepo)
+        public StockController(ApplicationDbContext context, IStockRepository stockRepo, ILogger<StockController> logger)
         {
             this.context = context;
             this.stockRepo = stockRepo;
+            this.logger = logger;
         }
 
         [HttpGet]
@@ -27,43 +29,79 @@ namespace api.Controllers
         public async Task<IActionResult> GetAllStocks([FromQuery] QueryObject query)
         {
             if (!ModelState.IsValid)
+            {
+                logger.LogWarning("Invalid model state for GetAllStocks request");
                 return BadRequest(ModelState);
+            }
 
-
-            var stocks = await stockRepo.GetAllAsync(query);
-
-            var stockDTO = stocks.Select(s => s.ToStockDTO()).ToList();
-
-            return Ok(stockDTO);
+            try
+            {
+                var stocks = await stockRepo.GetAllAsync(query);
+                var stockDTO = stocks.Select(s => s.ToStockDTO()).ToList();
+                
+                logger.LogInformation("Retrieved {Count} stocks with query: {Query}", stockDTO.Count, query.ToString());
+                return Ok(stockDTO);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error occurred while retrieving stocks");
+                return StatusCode(500, "An error occurred while retrieving stocks");
+            }
         }
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetStockById([FromRoute] int id)
         {
             if (!ModelState.IsValid)
+            {
+                logger.LogWarning("Invalid model state for GetStockById request with id: {Id}", id);
                 return BadRequest(ModelState);
+            }
 
+            try
+            {
+                var stock = await stockRepo.GetByIdAsync(id);
 
-            var stock = await stockRepo.GetByIdAsync(id);
+                if (stock == null)
+                {
+                    logger.LogWarning("Stock not found with id: {Id}", id);
+                    return NotFound();
+                }
 
-            if (stock == null)
-                return NotFound();
-
-            return Ok(stock.ToStockDTO());
-
+                logger.LogInformation("Retrieved stock with id: {Id}", id);
+                return Ok(stock.ToStockDTO());
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error occurred while retrieving stock with id: {Id}", id);
+                return StatusCode(500, "An error occurred while retrieving the stock");
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateStock([FromBody] CreateStockRequestDTO stockDto)
         {
             if (!ModelState.IsValid)
+            {
+                logger.LogWarning("Invalid model state for CreateStock request");
                 return BadRequest(ModelState);
+            }
 
-            var stockModel = stockDto.ToStockFromCreateDTO();
-            
-            await stockRepo.CreateAsync(stockModel);
-            
-            return CreatedAtAction(nameof(GetStockById), new { id = stockModel.Id }, stockModel.ToStockDTO());
+            try
+            {
+                var stockModel = stockDto.ToStockFromCreateDTO();
+                await stockRepo.CreateAsync(stockModel);
+                
+                logger.LogInformation("Successfully created stock with id: {Id}, symbol: {Symbol}", 
+                    stockModel.Id, stockModel.Symbol);
+                
+                return CreatedAtAction(nameof(GetStockById), new { id = stockModel.Id }, stockModel.ToStockDTO());
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error occurred while creating stock with symbol: {Symbol}", stockDto.Symbol);
+                return StatusCode(500, "An error occurred while creating the stock");
+            }
         }
 
         [HttpPut]

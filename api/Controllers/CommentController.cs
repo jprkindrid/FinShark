@@ -20,17 +20,20 @@ namespace api.Controllers
         private readonly IStockRepository stockRepo;
         private readonly UserManager<AppUser> userManager;
         private readonly IFMPService fmpService;
+        private readonly ILogger<CommentController> logger;
 
         public CommentController(
             ICommentRepository commentRepo,
             IStockRepository stockRepo,
             UserManager<AppUser> userManager,
-            IFMPService fmpService)
+            IFMPService fmpService,
+            ILogger<CommentController> logger)
         {
             this.commentRepo = commentRepo;
             this.stockRepo = stockRepo;
             this.userManager = userManager;
             this.fmpService = fmpService;
+            this.logger = logger;
         }
         [HttpGet]
         [Authorize]

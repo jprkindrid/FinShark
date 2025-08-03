@@ -11,11 +11,13 @@ namespace api.Service
     {
         private readonly HttpClient httpClient;
         private readonly IConfiguration config;
+        private readonly ILogger<FMPService> logger;
 
-        public FMPService(HttpClient httpClient, IConfiguration config)
+        public FMPService(HttpClient httpClient, IConfiguration config, ILogger<FMPService> logger)
         {
             this.httpClient = httpClient;
             this.config = config;
+            this.logger = logger;
         }
         public async Task<Stock?> FindStockBySymbolAsync(string symbol)
         {
@@ -29,7 +31,7 @@ namespace api.Service
                 if (!resp.IsSuccessStatusCode)
                 {
                     var err = await resp.Content.ReadAsStringAsync();
-                    Console.WriteLine($"FMP error {resp.StatusCode}: {err}");
+                    logger.LogError("FMP API error {StatusCode}: {Error}", resp.StatusCode, err);
                     return null;
                 }
 
@@ -37,13 +39,17 @@ namespace api.Service
 
                 var items = JsonConvert.DeserializeObject <FMPStock[]>(json);
                 if (items == null)
+                {
+                    logger.LogWarning("Failed to deserialize FMP response for symbol: {Symbol}", symbol);
                     return null;
+                }
 
+                logger.LogInformation("Successfully retrieved stock data for symbol: {Symbol}", symbol);
                 return items[0].ToStockFromFMP();
 
             } catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                logger.LogError(ex, "Exception occurred while fetching stock data for symbol: {Symbol}", symbol);
                 return null;
             }
         }
