@@ -1,1 +1,1 @@
-Just a tutorial I followed from [here](https://www.youtube.com/playlist?list=PL82C6-O4XrHfrGOCPmKmwTO7M0avXyQKc) to learn C# and .NET 9.0.)
+Just a tutorial I followed from [here](https://www.youtube.com/playlist?list=PL82C6-O4XrHfrGOCPmKmwTO7M0avXyQKc) to learn C# and .NET 9.0. And eventually react)
