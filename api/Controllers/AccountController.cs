@@ -3,6 +3,7 @@ using api.Interfaces;
 using api.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
@@ -12,11 +13,40 @@ namespace api.Controllers
     {
         private readonly UserManager<AppUser> userManager;
         private readonly ITokenService tokenService;
+        private readonly SignInManager<AppUser> signInManager;
 
-        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService)
+        public AccountController(UserManager<AppUser> userManager, ITokenService tokenService, SignInManager<AppUser> signInManager)
         {
             this.userManager = userManager;
             this.tokenService = tokenService;
+            this.signInManager = signInManager;
+        }
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDTO loginDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
+
+            if (user == null)
+                return Unauthorized("Invalid username");
+
+            var result = await signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+
+            if (!result.Succeeded)
+                return Unauthorized("Username not found and/or password incorrect");
+
+            return Ok(
+                new NewUserDTO
+                {
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    Token = tokenService.CreateToken(user)
+                }
+            );
         }
 
         [HttpPost("register")]
@@ -24,9 +54,9 @@ namespace api.Controllers
         {
             try
             {
-                if(!ModelState.IsValid)
+                if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);  
+                    return BadRequest(ModelState);
                 }
 
                 var appUser = new AppUser
@@ -55,11 +85,13 @@ namespace api.Controllers
                     {
                         return StatusCode(500, roleResult.Errors);
                     }
-                } else
+                }
+                else
                 {
                     return StatusCode(500, createdUser.Errors);
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, ex);
             }

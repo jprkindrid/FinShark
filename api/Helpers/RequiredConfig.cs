@@ -6,7 +6,12 @@ namespace api.Helpers
     {
         public static string Get(IConfiguration config, string key)
         {
-            return config[key] ?? throw new InvalidOperationException($"{key} is not configured");
+            var value = config[key];
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new InvalidOperationException($"Configuration key '{key}' is missing or empty.");
+            }
+            return value;
         }
     }
 }
