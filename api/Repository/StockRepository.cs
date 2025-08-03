@@ -20,82 +20,113 @@ namespace api.Repository
 
         public async Task<Stock> CreateAsync(Stock stock)
         {
-            await context.Stocks.AddAsync(stock);
-            await context.SaveChangesAsync();
-            return stock;
+            try
+            {
+                await context.Stocks.AddAsync(stock);
+                await context.SaveChangesAsync();
+                logger.LogInformation("Successfully created stock with symbol: {Symbol}", stock.Symbol);
+                return stock;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error occurred while creating stock with symbol: {Symbol}", stock.Symbol);
+                throw;
+            }
         }
 
         public async Task<Stock?> DeleteAsync(int id)
         {
-            var stock = await context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
-            if (stock == null)
+            try
             {
-                return null;
-            }
+                var stock = await context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
+                if (stock == null)
+                {
+                    logger.LogWarning("Attempted to delete non-existent stock with id: {Id}", id);
+                    return null;
+                }
 
-            context.Stocks.Remove(stock);
-            await context.SaveChangesAsync();
-            return stock;
+                context.Stocks.Remove(stock);
+                await context.SaveChangesAsync();
+                logger.LogInformation("Successfully deleted stock with id: {Id}, symbol: {Symbol}", id, stock.Symbol);
+                return stock;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error occurred while deleting stock with id: {Id}", id);
+                throw;
+            }
         }
 
         public async Task<List<Stock>> GetAllAsync(QueryObject query)
         {
-            var stocks = context.Stocks.Include(s => s.Comments).ThenInclude(a => a.AppUser).AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(query.CompanyName))
+            try
             {
-                stocks = stocks.Where(s => s.CompanyName.Contains(query.CompanyName));
-            }
+                var stocks = context.Stocks.Include(s => s.Comments).ThenInclude(a => a.AppUser).AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(query.Symbol))
-            {
-                stocks = stocks.Where(s => s.Symbol.Contains(query.Symbol));
-            }
-            if (!string.IsNullOrWhiteSpace(query.SortBy))
-                switch (query.SortBy.ToLowerInvariant())
+                if (!string.IsNullOrWhiteSpace(query.CompanyName))
                 {
-                    case "symbol":
-                        stocks = query.IsDescending 
-                            ? stocks.OrderByDescending(s => s.Symbol)
-                            : stocks.OrderBy(s => s.Symbol);
-                        break;
-
-                    case "companyname":
-                        stocks = query.IsDescending
-                            ? stocks.OrderByDescending(s => s.CompanyName)
-                            : stocks.OrderBy(s => s.Symbol);
-                        break;
-                    case "marketcap":
-                        stocks = query.IsDescending
-                            ? stocks.OrderByDescending(s => s.MarketCap)
-                            : stocks.OrderBy(s => s.MarketCap);
-                        break;
-
-                    case "price":
-                        stocks = query.IsDescending
-                            ? stocks.OrderByDescending(s => s.Price)
-                            : stocks.OrderBy(s => s.Price);
-                        break;
-
-                    case "lastdiv":
-                        stocks = query.IsDescending
-                            ? stocks.OrderByDescending(s => s.LastDiv)
-                            : stocks.OrderBy(s => s.LastDiv);
-                        break;
-
-                    case "industry":
-                        stocks = query.IsDescending
-                            ? stocks.OrderByDescending(s => s.Industry)
-                            : stocks.OrderBy(s => s.Industry);
-                        break;
-
-                    default:
-                        break;
+                    stocks = stocks.Where(s => s.CompanyName.Contains(query.CompanyName));
                 }
 
-            var skipNumber = (query.PageNumber - 1) * query.PageSize;
+                if (!string.IsNullOrWhiteSpace(query.Symbol))
+                {
+                    stocks = stocks.Where(s => s.Symbol.Contains(query.Symbol));
+                }
+                if (!string.IsNullOrWhiteSpace(query.SortBy))
+                    switch (query.SortBy.ToLowerInvariant())
+                    {
+                        case "symbol":
+                            stocks = query.IsDescending 
+                                ? stocks.OrderByDescending(s => s.Symbol)
+                                : stocks.OrderBy(s => s.Symbol);
+                            break;
 
-            return await stocks.Skip(skipNumber).Take(query.PageSize).ToListAsync();
+                        case "companyname":
+                            stocks = query.IsDescending
+                                ? stocks.OrderByDescending(s => s.CompanyName)
+                                : stocks.OrderBy(s => s.CompanyName);
+                            break;
+                        case "marketcap":
+                            stocks = query.IsDescending
+                                ? stocks.OrderByDescending(s => s.MarketCap)
+                                : stocks.OrderBy(s => s.MarketCap);
+                            break;
+
+                        case "price":
+                            stocks = query.IsDescending
+                                ? stocks.OrderByDescending(s => s.Price)
+                                : stocks.OrderBy(s => s.Price);
+                            break;
+
+                        case "lastdiv":
+                            stocks = query.IsDescending
+                                ? stocks.OrderByDescending(s => s.LastDiv)
+                                : stocks.OrderBy(s => s.LastDiv);
+                            break;
+
+                        case "industry":
+                            stocks = query.IsDescending
+                                ? stocks.OrderByDescending(s => s.Industry)
+                                : stocks.OrderBy(s => s.Industry);
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                var skipNumber = (query.PageNumber - 1) * query.PageSize;
+                var result = await stocks.Skip(skipNumber).Take(query.PageSize).ToListAsync();
+                
+                logger.LogInformation("Retrieved {Count} stocks with pagination (Page: {Page}, Size: {Size})", 
+                    result.Count, query.PageNumber, query.PageSize);
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error occurred while retrieving stocks with query: {@Query}", query);
+                throw;
+            }
         }
 
         public async Task<Stock?> GetBySymbolAsync(string symbol)
@@ -115,24 +146,34 @@ namespace api.Repository
 
         public async Task<Stock?> UpdateAsync(int id, UpdateStockRequestDTO stockDTO)
         {
-            var existingStock = await context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
-
-            if (existingStock == null)
+            try
             {
-                return null;
+                var existingStock = await context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
+
+                if (existingStock == null)
+                {
+                    logger.LogWarning("Attempted to update non-existent stock with id: {Id}", id);
+                    return null;
+                }
+
+                existingStock.Symbol = stockDTO.Symbol;
+                existingStock.CompanyName = stockDTO.CompanyName;
+                existingStock.Industry = stockDTO.Industry;
+                existingStock.Price = stockDTO.Price;
+                existingStock.LastDiv = stockDTO.LastDiv;
+                existingStock.MarketCap = stockDTO.MarketCap;
+
+                await context.SaveChangesAsync();
+                logger.LogInformation("Successfully updated stock with id: {Id}, symbol: {Symbol}", 
+                    id, existingStock.Symbol);
+
+                return existingStock;
             }
-
-            existingStock.Symbol = stockDTO.Symbol;
-            existingStock.CompanyName = stockDTO.CompanyName;
-            existingStock.Industry = stockDTO.Industry;
-            existingStock.Price = stockDTO.Price;
-            existingStock.LastDiv = stockDTO.LastDiv;
-            existingStock.MarketCap = stockDTO.MarketCap;
-
-            await context.SaveChangesAsync();
-
-            return existingStock;
-
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error occurred while updating stock with id: {Id}", id);
+                throw;
+            }
         }
 
 

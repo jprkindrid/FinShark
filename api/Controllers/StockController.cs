@@ -1,11 +1,9 @@
-﻿using api.Data;
-using api.DTOs.Stock;
+﻿using api.DTOs.Stock;
 using api.Helpers;
 using api.Interfaces;
 using api.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
@@ -13,13 +11,11 @@ namespace api.Controllers
     [ApiController]
     public class StockController : ControllerBase
     {
-        private readonly ApplicationDbContext context;
         private readonly IStockRepository stockRepo;
         private readonly ILogger<StockController> logger;
 
-        public StockController(ApplicationDbContext context, IStockRepository stockRepo, ILogger<StockController> logger)
+        public StockController(IStockRepository stockRepo, ILogger<StockController> logger)
         {
-            this.context = context;
             this.stockRepo = stockRepo;
             this.logger = logger;
         }
@@ -109,16 +105,30 @@ namespace api.Controllers
         public async Task<IActionResult> UpdateStock([FromRoute] int id, [FromBody] UpdateStockRequestDTO updateDto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var stockModel = await stockRepo.UpdateAsync(id, updateDto);
-
-            if (stockModel == null)
             {
-                return NotFound();
+                logger.LogWarning("Invalid model state for UpdateStock request with id: {Id}", id);
+                return BadRequest(ModelState);
             }
 
-            return Ok(stockModel.ToStockDTO());
+            try
+            {
+                var stockModel = await stockRepo.UpdateAsync(id, updateDto);
+
+                if (stockModel == null)
+                {
+                    logger.LogWarning("Stock not found for update with id: {Id}", id);
+                    return NotFound();
+                }
+
+                logger.LogInformation("Successfully updated stock with id: {Id}, symbol: {Symbol}", 
+                    stockModel.Id, stockModel.Symbol);
+                return Ok(stockModel.ToStockDTO());
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error occurred while updating stock with id: {Id}", id);
+                return StatusCode(500, "An error occurred while updating the stock");
+            }
         }
 
         [HttpDelete]
@@ -126,15 +136,29 @@ namespace api.Controllers
         public async Task<IActionResult> DeleteStock([FromRoute] int id)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var stockModel = await stockRepo.DeleteAsync(id);
-            if (stockModel == null)
             {
-                return NotFound();
+                logger.LogWarning("Invalid model state for DeleteStock request with id: {Id}", id);
+                return BadRequest(ModelState);
             }
 
-            return NoContent();
+            try
+            {
+                var stockModel = await stockRepo.DeleteAsync(id);
+                if (stockModel == null)
+                {
+                    logger.LogWarning("Stock not found for deletion with id: {Id}", id);
+                    return NotFound();
+                }
+
+                logger.LogInformation("Successfully deleted stock with id: {Id}, symbol: {Symbol}", 
+                    stockModel.Id, stockModel.Symbol);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error occurred while deleting stock with id: {Id}", id);
+                return StatusCode(500, "An error occurred while deleting the stock");
+            }
         }
     }
 }
