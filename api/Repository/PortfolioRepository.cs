@@ -1,0 +1,32 @@
+﻿using api.Data;
+using api.Interfaces;
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Repository
+{
+    public class PortfolioRepository : IPortfolioRepository
+    {
+        private readonly ApplicationDbContext context;
+
+        public PortfolioRepository(ApplicationDbContext context)
+        {
+            this.context = context;
+        }
+        public async Task<List<Stock>> GetUserPortfolio(AppUser user)
+        {
+            return await context.Portfolios.Where(u => u.AppUserId == user.Id)
+                .Select(stock => new Stock
+                {
+                    Id = stock.StockId,
+                    Symbol = stock.Stock.Symbol,
+                    CompanyName = stock.Stock.CompanyName,
+                    Price = stock.Stock.Price,
+                    LastDiv = stock.Stock.LastDiv,
+                    Industry = stock.Stock.Industry,
+                    MarketCap  = stock.Stock.MarketCap
+
+                }).ToListAsync();
+        }
+    }
+}

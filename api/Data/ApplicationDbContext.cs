@@ -9,20 +9,32 @@ namespace api.Data
     {
 
         public ApplicationDbContext(DbContextOptions dbContextOptions)
-            :base(dbContextOptions)
+            : base(dbContextOptions)
         {
-            
+
         }
 
-        public DbSet<Models.Stock> Stocks { get; set; } 
-        public DbSet<Models.Comment> Comments { get; set; }
+        public DbSet<Stock> Stocks { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<Portfolio> Portfolios { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Portfolio>(x => x.HasKey(p => new { p.AppUserId, p.StockId }));
+
+            modelBuilder.Entity<Portfolio>()
+                        .HasOne(u => u.AppUser)
+                        .WithMany(u => u.Portfolios)
+                        .HasForeignKey(p => p.AppUserId);
+
+            modelBuilder.Entity<Portfolio>()
+                        .HasOne(u => u.Stock)
+                        .WithMany(u => u.Portfolios)
+                        .HasForeignKey(p => p.StockId);
             // Seed Users
-            List<IdentityRole> roles = new List<IdentityRole>
-            {
+            List<IdentityRole> roles =
+            [
                 new IdentityRole
                 {
                     Id = "99D65A69-7C7C-440F-BC9F-E2A19EAF35C0",
@@ -35,7 +47,7 @@ namespace api.Data
                     Name = "User",
                     NormalizedName = "USER"
                 },
-            };
+            ];
 
             modelBuilder.Entity<IdentityRole>().HasData(roles);
 

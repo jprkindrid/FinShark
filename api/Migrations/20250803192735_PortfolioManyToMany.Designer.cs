@@ -12,8 +12,8 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250803143452_Identity")]
-    partial class Identity
+    [Migration("20250803192735_PortfolioManyToMany")]
+    partial class PortfolioManyToMany
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,6 +50,20 @@ namespace api.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "99D65A69-7C7C-440F-BC9F-E2A19EAF35C0",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = "A3569725-34BA-49F4-A041-F5E6A76B0735",
+                            Name = "User",
+                            NormalizedName = "USER"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -250,32 +264,21 @@ namespace api.Migrations
                     b.HasIndex("StockId");
 
                     b.ToTable("Comments");
+                });
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Content = "Apple has been performing really well this quarter.",
-                            CreatedOn = new DateTime(2024, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StockId = 1,
-                            Title = "Great stock!"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Content = "Microsoft's dividend is very attractive for long-term investors.",
-                            CreatedOn = new DateTime(2024, 7, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StockId = 2,
-                            Title = "Solid dividends"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Content = "Tesla's price swings a lot, but the growth is impressive.",
-                            CreatedOn = new DateTime(2024, 7, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            StockId = 3,
-                            Title = "Volatile"
-                        });
+            modelBuilder.Entity("api.Models.Portfolio", b =>
+                {
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("StockId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AppUserId", "StockId");
+
+                    b.HasIndex("StockId");
+
+                    b.ToTable("Portfolios");
                 });
 
             modelBuilder.Entity("api.Models.Stock", b =>
@@ -310,38 +313,6 @@ namespace api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Stocks");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CompanyName = "Apple Inc.",
-                            Industry = "Technology",
-                            LastDiv = 0.24m,
-                            MarketCap = 3000000000000L,
-                            Price = 195.34m,
-                            Symbol = "AAPL"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CompanyName = "Microsoft Corporation",
-                            Industry = "Technology",
-                            LastDiv = 0.68m,
-                            MarketCap = 2800000000000L,
-                            Price = 410.22m,
-                            Symbol = "MSFT"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CompanyName = "Tesla, Inc.",
-                            Industry = "Automotive",
-                            LastDiv = 0.00m,
-                            MarketCap = 800000000000L,
-                            Price = 250.12m,
-                            Symbol = "TSLA"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -404,9 +375,35 @@ namespace api.Migrations
                     b.Navigation("Stock");
                 });
 
+            modelBuilder.Entity("api.Models.Portfolio", b =>
+                {
+                    b.HasOne("api.Models.AppUser", "AppUser")
+                        .WithMany("Portfolios")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("api.Models.Stock", "Stock")
+                        .WithMany("Portfolios")
+                        .HasForeignKey("StockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Stock");
+                });
+
+            modelBuilder.Entity("api.Models.AppUser", b =>
+                {
+                    b.Navigation("Portfolios");
+                });
+
             modelBuilder.Entity("api.Models.Stock", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("Portfolios");
                 });
 #pragma warning restore 612, 618
         }
