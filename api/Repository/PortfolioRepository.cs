@@ -8,10 +8,12 @@ namespace api.Repository
     public class PortfolioRepository : IPortfolioRepository
     {
         private readonly ApplicationDbContext context;
+        private readonly ILogger<PortfolioRepository> logger;
 
-        public PortfolioRepository(ApplicationDbContext context)
+        public PortfolioRepository(ApplicationDbContext context, ILogger<PortfolioRepository> logger)
         {
             this.context = context;
+            this.logger = logger;
         }
 
         public async Task<Portfolio> CreateAsync(Portfolio portfolio)

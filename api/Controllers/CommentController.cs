@@ -54,6 +54,7 @@ namespace api.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> GetByID([FromRoute] int id)
         {
             if (!ModelState.IsValid)
@@ -67,7 +68,8 @@ namespace api.Controllers
             return Ok(comment.ToCommentDto());
         }
         [HttpPost("{symbol:alpha}")]
-        public async Task<IActionResult> Create([FromRoute] string symbol, CreateCommentDTO commentDto, IStockRepository stockRepo)
+        [Authorize]
+        public async Task<IActionResult> Create([FromRoute] string symbol, CreateCommentDTO commentDto)
         {
 
             if (!ModelState.IsValid)
@@ -89,7 +91,8 @@ namespace api.Controllers
                 return Unauthorized();
 
             var appUser = await userManager.FindByNameAsync(username);
-
+            if (appUser == null)
+                return Unauthorized("User not found");
 
             var commentModel = commentDto.ToCommentFromCreate(stock.Id);
             commentModel.AppUserID = appUser.Id;
@@ -100,6 +103,7 @@ namespace api.Controllers
 
         [HttpPut]
         [Route("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCommentRequestDTO updateDTO)
         {
 
@@ -119,6 +123,7 @@ namespace api.Controllers
 
         [HttpDelete]
         [Route("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             if (!ModelState.IsValid)

@@ -10,10 +10,12 @@ namespace api.Repository
     public class CommentRepository : ICommentRepository
     {
         private readonly ApplicationDbContext context;
+        private readonly ILogger<CommentRepository> logger;
 
-        public CommentRepository(ApplicationDbContext context)
+        public CommentRepository(ApplicationDbContext context, ILogger<CommentRepository> logger)
         {
             this.context = context;
+            this.logger = logger;
         }
 
         public async Task<Comment> CreateAsync(Comment comment)
