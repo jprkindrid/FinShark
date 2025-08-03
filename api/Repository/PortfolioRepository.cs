@@ -21,6 +21,22 @@ namespace api.Repository
             return portfolio;
         }
 
+        public async Task<Portfolio?> DeletePortfolio(AppUser appUser, string symbol)
+        {
+            var portfolio = await context.Portfolios
+                .FirstOrDefaultAsync(p =>
+                    p.AppUserId == appUser.Id &&
+                    p.Stock.Symbol == symbol);
+
+            if (portfolio is null)
+                return null;
+
+            context.Portfolios.Remove(portfolio);
+            await context.SaveChangesAsync();
+
+            return portfolio;
+        }
+
         public async Task<List<Stock>> GetUserPortfolio(AppUser user)
         {
             return await context.Portfolios.Where(u => u.AppUserId == user.Id)
@@ -32,7 +48,7 @@ namespace api.Repository
                     Price = stock.Stock.Price,
                     LastDiv = stock.Stock.LastDiv,
                     Industry = stock.Stock.Industry,
-                    MarketCap  = stock.Stock.MarketCap
+                    MarketCap = stock.Stock.MarketCap
 
                 }).ToListAsync();
         }
