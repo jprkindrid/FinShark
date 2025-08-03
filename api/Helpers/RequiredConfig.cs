@@ -6,7 +6,7 @@ namespace api.Helpers
     {
         public static string Get(IConfiguration config, string key)
         {
-            var value = config[key];
+            var value = config[key]?.Trim();
             if (string.IsNullOrEmpty(value))
             {
                 throw new InvalidOperationException($"Configuration key '{key}' is missing or empty.");

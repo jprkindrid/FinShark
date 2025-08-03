@@ -14,15 +14,18 @@ namespace api.Controllers
         private readonly UserManager<AppUser> userManager;
         private readonly IStockRepository stockRepo;
         private readonly IPortfolioRepository portfolioRepo;
+        private readonly IFMPService fmpService;
 
         public PortfolioController(
             UserManager<AppUser> userManager,
             IStockRepository stockRepo,
-            IPortfolioRepository portfolioRepo)
+            IPortfolioRepository portfolioRepo,
+            IFMPService fmpService)
         {
             this.userManager = userManager;
             this.stockRepo = stockRepo;
             this.portfolioRepo = portfolioRepo;
+            this.fmpService = fmpService;
         }
 
         [HttpGet]
@@ -30,6 +33,9 @@ namespace api.Controllers
         public async Task<IActionResult> GetUserPorfolio()
         {
             var username = User.GetUsername();
+            if (string.IsNullOrEmpty(username))
+                return Unauthorized();
+
             var appUser = await userManager.FindByNameAsync(username);
             if (appUser == null)
                 return NotFound("User not registered in database");
@@ -43,11 +49,22 @@ namespace api.Controllers
         public async Task<IActionResult> AddPortfolio(string symbol)
         {
             var username = User.GetUsername();
-            var appUser = await userManager.FindByNameAsync(username);
-            var stock = await stockRepo.GetBySymbolAsync(symbol);
+            if (string.IsNullOrEmpty(username))
+                return Unauthorized();
 
+            var appUser = await userManager.FindByNameAsync(username);
+
+            var stock = await stockRepo.GetBySymbolAsync(symbol);
             if (stock == null)
-                return BadRequest("Stock not found");
+            {
+                stock = await fmpService.FindStockBySymbolAsync(symbol);
+                if (stock == null)
+                {
+                    return BadRequest("Stock does not exist");
+                }
+                await stockRepo.CreateAsync(stock);
+            }
+
             var userPortfolio = await portfolioRepo.GetUserPortfolio(appUser);
 
             if (userPortfolio.Any(x => x.Symbol.ToLower() == symbol.ToLower()))
