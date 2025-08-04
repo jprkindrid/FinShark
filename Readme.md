@@ -2,4 +2,4 @@ Based on a tutorial I followed from [here](https://www.youtube.com/playlist?list
 
 May eventually add his react frontend as well.
 
-Cleaned up some issues, diverged a little from his methodology (i.e. adding a helper to ensure configuration variablesa actually exist), and added proper logging.
+Cleaned up some issues, diverged a little from his methodology (i.e. adding a helper to ensure configuration variables actually exist), and added proper logging.
